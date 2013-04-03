@@ -1,0 +1,453 @@
+<html>
+
+<head>
+
+<title>
+ 
+Javascript Arkanoid with "classes"
+
+</title>
+
+<!--Inclusão dos arquivos com a descrição dos objetos (classes)-->
+<!--notar a informação da subpasta-->
+<!--notar autocomplete... só que não... :´-(    )-->
+<script src="js/ball.js"></script>
+<script src="js/block.js"></script>
+<script src="js/pallete.js"></script>
+
+</head>
+
+<body>
+
+<!--canvas principal onde acontece o jogo-->
+<canvas width="800" height="600" id="main" style="border:1px solid #000000;"></canvas>
+
+<!--canvas secundário com informações extras (pontos, vida, etc...)-->
+<canvas width="80" height="600" id="main2" style="border:1px solid #FF0000;"/>
+
+<script>
+
+//referência dos DOIS canvas separadamente no script
+var canvas = document.getElementById("main");
+var screen = canvas.getContext("2d");
+var canvas2 = document.getElementById("main2");
+var screen2 = canvas2.getContext("2d");
+
+var SCENE = {
+  INTRO : 0, 
+  GAME: 1
+};
+
+var currentScene = SCENE.INTRO;
+
+//if(currentScene == SCENE.INTRO)
+
+//a criação de um OBJETO do tipo BALL
+var ball = new Ball();
+
+//a criação de um OBJETO do tipo PALLETE
+var player1 = new Pallete();
+
+//a criação de uma VARIAVEL do tipo ARRAY (própria do javascript)
+//será a lista de blocos
+
+var blocks = new Array();
+
+//em cada posição desta lista vou então acrescentar BLOCOS
+//blocks[0] = new Block(); 
+//blocks[1] = new Block();
+//blocks[2] = new Block();
+
+
+for(var i = 0; i < 6; i++)
+{
+	if(i%2 == 0)
+	{
+		blocks[i] = new Block("imgs/block.png", 2);	
+	}
+	else
+	{
+		blocks[i] = new Block("imgs/block2.png", 1);	
+	}
+	
+	blocks[i].position_x = 20 + (i * (blocks[i].size_x + 5))  
+}
+
+for(var i = 0; i < 6; i++)
+{
+	if(i%2 == 0)
+	{
+		blocks[i+6] = new Block("imgs/block.png", 2);	
+	}
+	else
+	{
+		blocks[i+6] = new Block("imgs/block2.png", 1);	
+	}
+	
+	blocks[i+6].position_y = 120;
+	blocks[i+6].position_x = 20 + (i * (blocks[i+6].size_x + 5))  
+ 
+}
+
+
+
+//mudando as posições iniciais destes blocos
+//blocks[0].position_x = 0;
+//blocks[1].position_x = 125;
+//blocks[1].visible = false;
+//blocks[2].position_x = 250;
+
+//indica se o jogo está rodando ou pausado
+var paused = false;
+
+var background_music = new Audio();
+background_music.src = "sounds/music.mp3";
+background_music.load();
+background_music.loop = true;
+background_music.volume = 0.1;
+//background_music.play();//colocar em loop
+
+var sound_effect_1 = new Audio();
+sound_effect_1.src = "sounds/soundeffect.wav";
+sound_effect_1.load();
+
+var sound_effect_2 = new Audio();
+sound_effect_2.src = "sounds/powerup.mp3";
+sound_effect_2.load();
+
+
+var pontos = 0;
+
+var direita = false;
+var esquerda = false;
+
+console.log("1");
+	
+load();
+
+console.log("2");
+
+function load()
+{	
+	console.log("load");
+	
+	if((true))//to do...
+	{	
+		console.log("carreguei");
+	
+		loop();
+	}
+	else
+	{
+		console.log("nao carreguei");
+	
+		setTimeout(load, 30 );
+	}
+}
+
+function loop()
+{
+	console.log("loop");
+	
+	//o loop do jogo faz chamadas para update e draw
+	
+	update();
+	
+	draw();
+	
+	//o loop do jogo se chama a cada 30 ms, +- 30 FPS (1/30) ~ 33 fps
+	setTimeout(loop, 30 );
+	
+}	
+	
+function update()
+{
+	console.log("update");
+	
+	switch(currentScene)
+	{
+		case SCENE.INTRO:
+		
+			//
+		
+		break;
+		
+		case SCENE.GAME:
+			
+			if(paused)
+			{
+				return;
+			}
+	
+			ball.update();
+	
+			player1.update();
+	
+			for(var i = 0; i < blocks.length; i++)
+			{
+				if(blocks[i].visible)
+				{
+					if(Collide(
+						ball.position_x,
+						ball.position_y,
+						ball.size_x,
+						ball.size_y,
+						blocks[i].position_x,
+						blocks[i].position_y,
+						blocks[i].size_x,
+						blocks[i].size_y))
+					{
+						if(ball.velocity_y < ball.velocity_MAX)
+						{
+							ball.velocity_y += 1;
+						}
+						ball.velocity_y *= -1;
+						//se bateu diminiu energia do bloco
+						blocks[i].hp--;
+						pontos+=blocks[i].points;
+						//efeito_sonoro.play();
+					}
+	
+				}
+		
+			}
+	
+			//teste se o bloco nao tem mais energia
+			for(var i = 0; i < blocks.length; i++)
+			{
+				if(blocks[i].hp <= 0)
+				{
+					blocks[i].visible = false;
+				}
+			}
+
+				
+		break;
+	}//fim switch	
+	
+}
+
+function draw()
+{
+	console.log("draw");
+	//limpa a tela (refresh) e desenha tudo... e a tela 2???????????
+	clear();
+	
+	
+	if(currentScene == SCENE.INTRO)
+	{
+		//desenhar texto na tela
+	screen.font = "20px Comic Sans MS";
+	screen.fillStyle="#FFFF00";
+	screen.fillText("jogo de arkanoid feito por mim\n aperte o mouse pra continuar", 20, 20);
+	
+		
+	}//fim if intro
+	
+	
+	if(currentScene == SCENE.GAME)
+	{
+		screen.drawImage(player1.img, player1.position_x, player1.position_y);
+	
+	screen.drawImage(ball.img, ball.position_x, ball.position_y);
+	
+	for(var i = 0; i < blocks.length; i++)
+	{
+		if(blocks[i].visible)
+		screen.drawImage(blocks[i].img, blocks[i].position_x, blocks[i].position_y);
+		//console.log("oi");
+	}
+		
+	//desenhar texto na tela 2	
+	screen2.font = "20px Comic Sans MS";
+	screen2.fillStyle="#FFFF00";
+	screen2.fillText(pontos, 20, 20);
+	
+	}//fim if game
+	
+	
+
+	
+}
+
+function clear()
+{
+	screen.clearRect(0,0,800,600);
+	screen2.clearRect(0,0,800,600);//valores?
+}
+
+//nossas fun��es de captura de teclado e mouse
+
+                        //padrao, nossa fun��o, captura imediata
+window.addEventListener('keydown', key_down, true);
+window.addEventListener('keyup', key_up, true);
+window.addEventListener('mousemove', mouse_move, true);
+window.addEventListener('mouseup', mouse_up, true);
+window.addEventListener('mousedown', mouse_down, true);
+
+function key_down(key)
+{
+	console.log(key.keyCode);
+	
+	//TO DO enum com os c�digos
+	if(key.keyCode == 39 )//direita
+	{
+		direita = true;
+	}
+	
+	if(key.keyCode == 37 )//esquerda
+	{
+		esquerda = true;
+	}
+}
+
+function key_up(key)
+{
+	
+	console.log(key.keyCode);
+	
+	//TO DO enum com os c�digos
+	if(key.keyCode == 39 )//direita
+	{
+		direita = false;
+	}
+	
+	if(key.keyCode == 37 )//esquerda
+	{
+		esquerda = false;
+	}
+}
+
+function mouse_move(mouse)
+{
+	
+}
+
+function mouse_up(mouse)
+{
+		//background_music.muted = false;
+		
+		paused = false;
+		
+  		sound_effect_2.play();
+  		
+  		background_music.play();
+}
+
+function mouse_down(mouse)
+{
+	console.log("down X " + mouse.x + " down Y " + mouse.y );
+		
+	if(currentScene == SCENE.INTRO)
+	{
+  		//se apertar um botao vai pro jogo
+  		
+  		currentScene = SCENE.GAME;
+  		
+  		
+	}//fim if intro
+	
+	if(currentScene == SCENE.GAME)
+	{
+  		//se apertar o botao pausa/despausa
+  		
+  		paused = true;
+  		
+  		sound_effect_1.play();
+  		
+  		//background_music.pause();
+  		
+  		//background_music.volume = 0.1;
+  		
+  		//background_music.muted = true;
+  		  		
+  		//loop
+  		//mute
+  		//volume
+  		
+	}//fim if game
+	
+	
+}
+
+//retorna se um rect colidiu com outro
+function Collide(x1, y1, w1, h1, x2, y2, w2, h2)
+{	
+	if((x1+w1<x2)//se rect1 esquerda rect2
+		||(x1>x2+w2)//se rect1 direita rect2
+		||(y1+h1<y2)//se rect1 acima rect2
+		||(y1>y2+h2))//se rect1 abaixo rect2
+	{
+		return false;//nao colidiu
+	}
+	else
+	{
+		return true;//colidiu
+	}
+}
+
+//Math.floor((Math.random()*10)+1);
+//setInterval() - executes a function, over and over again, at specified time intervals
+//setTimeout() - executes a function, once, after waiting a specified number of milliseconds
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

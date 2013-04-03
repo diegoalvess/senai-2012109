@@ -1,0 +1,541 @@
+<html>
+
+<head>
+
+<title>
+ 
+Javascript Arkanoid with "classes"
+
+</title>
+
+<!--Inclusão dos arquivos com a descrição dos objetos (classes)-->
+<!--notar a informação da subpasta-->
+<!--notar autocomplete... só que não... :´-(    )-->
+<script src="js/block.js"></script>
+<script src="js/pallete.js"></script>
+<script src="js/shoot.js"></script>
+<script src="js/alien_ship.js"></script>
+
+
+</head>
+
+<body>
+
+<!--canvas principal onde acontece o jogo-->
+<canvas width="800" height="600" id="main" style="border:1px solid #000000;"></canvas>
+
+<script>
+
+//referência dos DOIS canvas separadamente no script
+var canvas = document.getElementById("main");
+var screen = canvas.getContext("2d");
+
+var SCREEN_WIDTH = 800;
+var SCREEN_HEIGHT = 600;
+
+//a criação de um OBJETO do tipo PALLETE
+var player1 = new Pallete();
+
+//a criação de uma VARIAVEL do tipo ARRAY (própria do javascript)
+//será a lista de blocos
+var blocks = new Array();
+
+//lista de tiros do jogador
+//qd apertar espaco acrescenta um novo tiro aqui
+var shoots = new Array();
+
+
+//lista de tiros dos inimigos
+var enemy_shoots = new Array();
+
+
+//esta variavel sera usada para inverter e fazer descer os inimigos (alienigenas)
+var godownandreversedirection = false;
+
+for(var i = 0; i < 4; i++)
+{
+	if(i%2 == 0)
+	{
+		blocks[i] = new Alien_Ship("imgs/block.png", 1);	
+	}
+	else
+	{
+		blocks[i] = new Alien_Ship("imgs/block2.png", 1);	
+	}
+	
+	blocks[i].position_x = 0 + (i * (blocks[i].size_x + 5))  
+}
+
+for(var i = 0; i < 4; i++)
+{
+	if(i%2 == 0)
+	{
+		blocks[i+4] = new Alien_Ship("imgs/block.png", 2);	
+	}
+	else
+	{
+		blocks[i+4] = new Alien_Ship("imgs/block2.png", 2);	
+	}
+	
+	blocks[i+4].position_y = 120;
+	blocks[i+4].position_x = 0 + (i * (blocks[i+4].size_x + 5))  
+ 
+}
+
+
+//indica se o jogo está rodando ou pausado
+var paused = false;
+
+var efeito_sonoro = new Audio();
+efeito_sonoro.src = "sounds/powerup.mp3";
+efeito_sonoro.load();
+
+var pontos = 0;
+
+var direita = false;
+var esquerda = false;
+
+var apertou_espaco = false;
+var soltou_espaco = true;
+
+
+var apertou_r = false;
+var soltou_r = true;
+
+var apertando_espaco = false;
+	
+load();
+
+function load()
+{	
+	console.log("load");
+	
+	if((true))//to do...
+	{	
+		console.log("carreguei");
+	
+		loop();
+	}
+	else
+	{
+		console.log("nao carreguei");
+	
+		setTimeout(load, 30 );
+	}
+}
+
+function loop()
+{
+	//console.log("loop");
+	
+	//o loop do jogo faz chamadas para update e draw
+	
+	update();
+	
+	draw();
+	
+	//o loop do jogo se chama a cada 30 ms, +- 30 FPS (1/30) ~ 33 fps
+	setTimeout(loop, 30 );
+	
+}	
+	
+function update()
+{
+	//console.log("update");
+		
+	if(paused)
+	{
+		return;
+	}
+		
+	player1.update();
+	
+	if(apertou_espaco)
+	{
+		//crio um tiro extra na minha lista
+		shoots.push(new Shoot(player1.position_x+player1.size_x/2, player1.position_y, 1));
+	}
+	
+	if(apertou_r)
+	{
+		//crio um tiro extra na minha lista de tiros dos inimigos
+		enemy_shoots.push(new Shoot(blocks[7].position_x, blocks[7].position_y+blocks[7].size_y, -1));
+	}
+	
+	//atualiza��o dos tiros, mover para cima
+	for(var i = 0; i < shoots.length; i++)
+	{
+		shoots[i].update();
+	}	
+	
+	//atualiza��o dos tiros dos inimigos, mover para para baixo
+	for(var i = 0; i < enemy_shoots.length; i++)
+	{
+		enemy_shoots[i].update();
+		
+		if(Collide(
+					enemy_shoots[i].position_x,
+					enemy_shoots[i].position_y,
+					enemy_shoots[i].size_x,
+					enemy_shoots[i].size_y,
+					player1.position_x,
+					player1.position_y,
+					player1.size_x,
+					player1.size_y))
+				{
+					if(enemy_shoots[i].visible)
+					{
+						enemy_shoots[i].visible = false;
+						
+						player1.life--;
+						
+						if(player1.life <= 0)
+						{
+							player1.visible = false;
+							paused = true;
+							efeito_sonoro.play();
+							enemy_shoots.length = 0;
+						}
+					
+						efeito_sonoro.play();	
+					}					
+				}//fim do teste de colisao do tiro do inimigo com o jogador
+	}//fim do for dos tiros dos inimigos	
+	
+	
+	for(var i = 0; i < blocks.length; i++)
+	{
+		for(var j = 0; j < shoots.length; j++)
+		{
+			if(blocks[i].visible && shoots[j].visible)
+			{
+				if(Collide(
+					shoots[j].position_x,
+					shoots[j].position_y,
+					shoots[j].size_x,
+					shoots[j].size_y,
+					blocks[i].position_x,
+					blocks[i].position_y,
+					blocks[i].size_x,
+					blocks[i].size_y))
+				{
+					shoots[j].visible = false;
+					
+					//se bateu diminiu energia do bloco
+					blocks[i].hp--;
+					pontos+=blocks[i].points;
+					efeito_sonoro.play();
+					
+					
+				}
+	
+			}
+		}//fecha for interno J, tiros
+	}//fecha for externo I, blocos
+	
+	
+	//teste se o bloco nao tem mais energia
+	for(var i = 0; i < blocks.length; i++)
+	{
+		if(blocks[i].hp <= 0)
+		{
+			blocks[i].visible = false;
+		}
+		
+		if((blocks[i].shoot)&&(blocks[i].visible))
+		{
+			enemy_shoots.push(new Shoot(blocks[i].position_x, blocks[i].position_y+blocks[i].size_y, -1));
+			blocks[i].shoot = false;
+		}
+	}
+		
+	//remove tiros nao visiveis da lista
+	for(var i = 0; i < shoots.length; i++)
+	{
+		if(shoots[i].visible == false)
+		{
+			shoots.splice(i,1);//performance...
+		}
+	}
+	
+	//nao vou remover os blocks da lista pra poder 
+	//testar mais facilmente apenas se UM visivel 
+	//bateu em algum canto
+	
+	//atualiza��o dos inimigos, mover para cima
+	for(var i = 0; i < blocks.length; i++)
+	{
+		blocks[i].update();
+		
+		//teste se algum bloco visivel bateu no canto da direita
+		if(blocks[i].visible)
+		{
+			if(blocks[i].position_x + blocks[i].size_x > SCREEN_WIDTH )
+			{
+				godownandreversedirection = true;
+				for(var j = 0; j < blocks.length; j++)
+				{
+					blocks[j].velocity_x += 1;
+				}
+
+		//teste se algum bloco visivel bateu no canto da esquerda		
+		}
+		if(blocks[i].position_x < 0 )
+		{
+			godownandreversedirection = true;
+			for(var j = 0; j < blocks.length; j++)
+			{
+				blocks[j].velocity_x -= 1;
+			}
+		}
+	}
+	//dizendo o que a variavel de descer e inverter os inimigos vai fazer
+	}	
+	if(godownandreversedirection)
+	{
+		//
+		for(var i = 0; i < blocks.length; i++)
+		{
+			blocks[i].position_y += 5;
+			
+			blocks[i].velocity_x *= -1;
+		}
+		godownandreversedirection = false;
+	}
+	
+	apertou_espaco = false;
+	apertou_r = false;
+		
+}
+
+function draw()
+{
+	//console.log("draw");
+	//limpa a tela (refresh) e desenha tudo... e a tela 2???????????
+	clear();
+	
+	if(player1.visible)
+	{
+		screen.drawImage(player1.img, player1.position_x, player1.position_y);
+	}
+	
+	//screen.drawImage(ball.img, ball.position_x, ball.position_y);
+	
+	//desenho dos blocos
+	for(var i = 0; i < blocks.length; i++)
+	{
+		if(blocks[i].visible)
+		screen.drawImage(blocks[i].img, blocks[i].position_x, blocks[i].position_y);
+		
+	}
+	
+	//desenho dos tiros
+	for(var i = 0; i < shoots.length; i++)
+	{
+		if(shoots[i].visible)
+		screen.drawImage(shoots[i].img, shoots[i].position_x, shoots[i].position_y);
+		
+	}
+	
+	//desenho dos tiros dos inimigos
+	for(var i = 0; i < enemy_shoots.length; i++)
+	{
+		if(enemy_shoots[i].visible)
+		screen.drawImage(enemy_shoots[i].img, enemy_shoots[i].position_x, enemy_shoots[i].position_y);
+		
+	}
+	
+	screen.font = "20px Comic Sans MS";
+	screen.fillStyle="#000000";
+	screen.fillText("Pontos: " + pontos, 20, 20);
+	screen.fillText("Vidas: " + player1.life, 400, 20);
+		
+	
+	
+}
+
+function clear()
+{
+	screen.clearRect(0,0,800,600);
+}
+
+//nossas fun��es de captura de teclado e mouse
+
+                        //padrao, nossa fun��o, captura imediata
+window.addEventListener('keydown', key_down, true);
+window.addEventListener('keyup', key_up, true);
+window.addEventListener('mousemove', mouse_move, true);
+window.addEventListener('mouseup', mouse_up, true);
+window.addEventListener('mousedown', mouse_down, true);
+
+function key_down(key)
+{
+	console.log("DOWNNNNNNNNNNN");
+	console.log(key.keyCode);
+	
+	//TO DO enum com os c�digos
+	if(key.keyCode == 39 )//direita
+	{
+		direita = true;
+	}
+	
+	if(key.keyCode == 37 )//esquerda
+	{
+		esquerda = true;
+	}
+	
+	if(key.keyCode == 32 )//barra de espaco
+	{
+		apertando_espaco = true;
+		
+		if(soltou_espaco)
+		{
+			soltou_espaco = false;
+			apertou_espaco = true;
+		}
+	}
+	
+	if(key.keyCode == 82 )//letra r
+	{
+		
+		if(soltou_r)
+		{
+			soltou_r = false;
+			apertou_r = true;
+		}
+	}
+}
+
+function key_up(key)
+{
+	console.log("UPPPPPPPPPPPPP");
+	console.log(key.keyCode);
+	
+	//TO DO enum com os c�digos
+	if(key.keyCode == 39 )//direita
+	{
+		direita = false;
+	}
+	
+	if(key.keyCode == 37 )//esquerda
+	{
+		esquerda = false;
+	}
+	
+	if(key.keyCode == 32 )//barra de espaco
+	{
+		apertando_espaco = false;
+		
+		apertou_espaco = false;
+		soltou_espaco = true;
+	}
+	
+	if(key.keyCode == 82 )//letra r
+	{
+		apertou_r = false;
+		
+		soltou_r = true;
+		
+	}
+	
+	//TO DO s� pode dar um tiro a cada aperto na barra de espaco
+}
+
+function mouse_move(mouse)
+{
+	
+}
+
+function mouse_up(mouse)
+{
+	
+}
+
+function mouse_down(mouse)
+{
+	console.log("down X " + mouse.x + " down Y " + mouse.y );
+		
+	paused = !paused;
+}
+
+//retorna se um rect colidiu com outro
+function Collide(x1, y1, w1, h1, x2, y2, w2, h2)
+{	
+	if((x1+w1<x2)//se rect1 esquerda rect2
+		||(x1>x2+w2)//se rect1 direita rect2
+		||(y1+h1<y2)//se rect1 acima rect2
+		||(y1>y2+h2))//se rect1 abaixo rect2
+	{
+		return false;//nao colidiu
+	}
+	else
+	{
+		return true;//colidiu
+	}
+}
+
+//Math.floor((Math.random()*10)+1);
+//setInterval() - executes a function, over and over again, at specified time intervals
+//setTimeout() - executes a function, once, after waiting a specified number of milliseconds
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

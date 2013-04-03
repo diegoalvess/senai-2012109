@@ -1,0 +1,361 @@
+<html>
+
+<head>
+
+<title>
+
+Catch That Student Who Will Win A Lunch Today At 15:00 O'Clock
+
+</title>
+
+<script src="js/catch/falling_object.js"></script>
+<script src="js/catch/player.js"></script>
+
+</head>
+
+<body>
+
+<!--canvas principal onde acontece o jogo-->
+<canvas width="800" height="600" id="main" style="border:1px solid #000000;"></canvas>
+
+<script>
+
+var canvas = document.getElementById("main");
+var screen = canvas.getContext("2d");
+
+SCREEN_WIDTH = 800;
+SCREEN_HEIGHT = 600;
+
+var falling_objects_list = new Array();
+
+function criarObjetos()
+{
+	var o1 = new FallingObject("imgs/ball.png", 40, 40, 2, 0);
+
+	var o2 = new FallingObject("imgs/ball2.png", 40, 40, 3, 0);
+
+	var o3 = new FallingObject("imgs/block.png", 120, 40, -1, 0);
+
+	var o4 = new FallingObject("imgs/block2.png", 120, 40, 0.5, 0);
+	
+	var o5 = new FallingObject("imgs/pallete.png", 120, 40, 0, 1);
+
+	falling_objects_list.push(o1);
+	falling_objects_list.push(o2);
+	falling_objects_list.push(o3);
+	falling_objects_list.push(o4);
+	falling_objects_list.push(o5);
+}
+
+criarObjetos();
+
+var player1 = new Pallete();
+
+var paused = false;
+
+var game_over = false;
+
+var efeito_sonoro = new Audio();
+efeito_sonoro.src = "sounds/powerup.mp3";
+efeito_sonoro.load();
+
+var pontos = 0;
+
+load();
+
+function load()
+{	
+	console.log("load");
+	
+	if((true))//to do...
+	{	
+		console.log("carreguei");
+	
+		loop();
+	}
+	else
+	{
+		console.log("nao carreguei");
+	
+		setTimeout(load, 30 );
+	}
+}
+
+function loop()
+{
+	//console.log("loop");
+	
+	//o loop do jogo faz chamadas para update e draw
+	
+	update();
+	
+	draw();
+	
+	//o loop do jogo se chama a cada 30 ms, +- 30 FPS (1/30) ~ 33 fps
+	setTimeout(loop, 30 );
+	
+}	
+	
+function update()
+{
+	//console.log("update");
+	
+	if(paused)
+	{
+		return;
+	}
+		
+	player1.update();
+	
+	/*
+	o1.update();
+	o2.update();
+	o3.update();
+	o4.update();
+		
+	if(Collide(o1.position_x, o1.position_y, o1.size_x, o1.size_y,
+				player1.position_x, player1.position_y, player1.size_x, player1.size_y))
+	{
+		o1.goupandrandompositionandvelocity();
+		player1.points += o1.jacy;
+	}
+	
+	if(Collide(o2.position_x, o2.position_y, o2.size_x, o2.size_y,
+				player1.position_x, player1.position_y, player1.size_x, player1.size_y))
+	{
+		o2.goupandrandompositionandvelocity();
+		player1.points += o2.jacy;
+	}	
+		
+	if(Collide(o3.position_x, o3.position_y, o3.size_x, o3.size_y,
+				player1.position_x, player1.position_y, player1.size_x, player1.size_y))
+	{
+		o3.goupandrandompositionandvelocity();
+		player1.points += o3.jacy;
+	}
+	
+	if(Collide(o4.position_x, o4.position_y, o4.size_x, o4.size_y,
+				player1.position_x, player1.position_y, player1.size_x, player1.size_y))
+	{
+		o4.goupandrandompositionandvelocity();
+		player1.points += o4.jacy	;
+	}
+	
+	if(o1.position_y > SCREEN_HEIGHT)		
+	{
+		player1.life -= 1;
+		o1.goupandrandompositionandvelocity();
+	}
+		
+	if(o2.position_y > SCREEN_HEIGHT)		
+	{
+		player1.life -= 1;
+		o2.goupandrandompositionandvelocity();
+	}
+		
+	if(o3.position_y > SCREEN_HEIGHT)		
+	{
+		player1.life -= 1;
+		o3.goupandrandompositionandvelocity();
+	}
+	*/
+	
+	//var lista = new Array();
+	
+	//lista.push(1);
+	//lista.push("oioi");
+	
+	//for(var i = 0; i < lista.length; i++)
+	//{
+	//	lista[i];	
+	//}
+	
+	for(var i = 0; i < falling_objects_list.length; i++)
+	{
+		falling_objects_list[i].update();
+		
+		if(Collide(falling_objects_list[i].position_x, falling_objects_list[i].position_y, falling_objects_list[i].size_x, falling_objects_list[i].size_y,
+				player1.position_x, player1.position_y, player1.size_x, player1.size_y))
+		{
+			falling_objects_list[i].goupandrandompositionandvelocity();
+			player1.points += falling_objects_list[i].jacy;
+			player1.life += falling_objects_list[i].extra_life;
+		}
+		
+		if(falling_objects_list[i].position_y > SCREEN_HEIGHT)		
+		{
+			player1.life -= 1;
+			falling_objects_list[i].goupandrandompositionandvelocity();
+		}
+	}
+	
+	if(player1.life < 1)
+	{
+		paused = true;
+		game_over = true;
+		falling_objects_list.length = 0;
+	}
+}
+
+function draw()
+{	
+	clear();
+	
+	screen.drawImage(player1.img, player1.position_x, player1.position_y);
+	
+	for(var i = 0; i < falling_objects_list.length; i++)
+	{
+		screen.drawImage(falling_objects_list[i].img, falling_objects_list[i].position_x, falling_objects_list[i].position_y);	
+	}
+	
+	//screen.drawImage(o1.img, o1.position_x, o1.position_y);
+	
+	//screen.drawImage(o2.img, o2.position_x, o2.position_y);
+		
+	//screen.drawImage(o3.img, o3.position_x, o3.position_y);
+	
+	//screen.drawImage(o4.img, o4.position_x, o4.position_y);	
+	
+	screen.font = "20px Comic Sans MS";
+	screen.fillStyle="#000000";
+	screen.fillText("Life: " + player1.life + " Points: " + player1.points, 20, 20);
+	
+	if(game_over)
+	{
+		screen.fillText("GAME OVER! Click the mouse to restart", 200, 200);	
+	}
+
+			
+}
+
+function clear()
+{
+	screen.clearRect(0,0,800,600);
+}
+
+window.addEventListener('keydown', key_down, true);
+window.addEventListener('keyup', key_up, true);
+window.addEventListener('mousemove', mouse_move, true);
+window.addEventListener('mouseup', mouse_up, true);
+window.addEventListener('mousedown', mouse_down, true);
+
+function key_down(key)
+{
+	player1.key_down(key);
+	
+}
+
+function key_up(key)
+{
+	player1.key_up(key);
+}
+
+function mouse_move(mouse)
+{
+	
+}
+
+function mouse_up(mouse)
+{
+	//console.log("up X " + mouse.x + " up Y " + mouse.y);
+}
+
+function mouse_down(mouse)
+{
+	console.log("down X " + mouse.x + " down Y " + mouse.y );
+	
+	//efeito_sonoro.play();
+	
+	if(game_over)
+	{
+		player1.life = 3;
+		player1.points = 0;
+		game_over = false;
+		paused = false;
+		falling_objects_list.length = 0;
+		criarObjetos();
+	}
+	else
+	{
+		paused = !paused;
+	}
+	
+}
+
+//retorna se um rect colidiu com outro
+function Collide(x1, y1, w1, h1, x2, y2, w2, h2)
+{	
+	if((x1+w1<x2)//se rect1 esquerda rect2
+		||(x1>x2+w2)//se rect1 direita rect2
+		||(y1+h1<y2)//se rect1 acima rect2
+		||(y1>y2+h2))//se rect1 abaixo rect2
+	{
+		return false;//nao colidiu
+	}
+	else
+	{
+		return true;//colidiu
+	}
+}
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
