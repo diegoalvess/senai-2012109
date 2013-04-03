@@ -1,0 +1,305 @@
+<html>
+
+<head>
+
+<title>
+
+Javascript Point and Click
+
+</title>
+
+
+<script src="js/target.js"></script>
+
+</head>
+
+<body>
+
+<!--canvas principal onde acontece o jogo-->
+<canvas width="800" height="600" id="main" style="border:1px solid #000000;"></canvas>
+
+<script>
+
+var canvas = document.getElementById("main");
+var screen = canvas.getContext("2d");
+
+var tela_W = 800;
+var tela_H = 600;
+
+var paused = false;
+   
+var efeito_sonoro = new Audio();
+efeito_sonoro.src = "sounds/powerup.mp3";
+efeito_sonoro.load();
+
+//Criação de um objeto do tipo target
+var target1 = new Target("imgs/ball.png");
+
+var target2 = new Target("imgs/block.png");
+
+var target3 = new Target("imgs/block2.png");
+
+var SCENE = {
+  INTRO : 0, 
+  GAME: 1
+};
+
+var currentScene = SCENE.INTRO;
+
+//setInterval(contarSegundo, 1000);
+
+//function contarSegundo()
+//{
+//	tempoSeg++;	
+//}
+	
+load();
+
+function load()
+{	
+	console.log("load");
+	                
+	if((true))//to do...
+	{	
+		console.log("carreguei");
+	
+		loop();
+	}
+	else
+	{
+		console.log("nao carreguei");
+	
+		setTimeout(load, 30 );
+	}
+}
+
+function loop()
+{
+	//console.log("loop");
+	
+	//o loop do jogo faz chamadas para update e draw
+	
+	update();
+	
+	draw();
+	
+	//o loop do jogo se chama a cada 30 ms, +- 30 FPS (1/30) ~ 33 fps
+	setTimeout(loop, 30 );
+	
+}	
+	
+function update()
+{
+	//console.log("update");
+	
+	switch(currentScene)
+	{
+		case SCENE.INTRO:
+		
+			//
+		
+		break;
+		
+		case SCENE.GAME:
+		
+			if(paused)
+			{
+				return;
+			}		
+	
+			target1.update();	
+			target2.update();
+			target3.update();	
+		
+		break;
+	}
+	
+}
+
+function draw()
+{
+	//console.log("draw");
+	
+	switch(currentScene)
+	{
+		case SCENE.INTRO:
+		
+			screen.font = "20px Comic Sans MS";
+			screen.fillStyle="#000000";
+			screen.fillText("BEM-VINDO AO MEU JOGO", 20, 20);
+		
+		break;
+		
+		case SCENE.GAME:
+		
+		//limpa a tela (refresh) e desenha tudo... e a tela 2???????????
+		clear();
+	
+		target1.draw();
+		target2.draw();
+		target3.draw();
+
+		
+		//desenhar texto na tela 	
+		screen.font = "20px Comic Sans MS";
+		screen.fillStyle="#000000";
+		screen.fillText("target1.currentTime: "+target1.currentTime, 20, 20);
+		screen.fillText("target1.timeToAppear: "+target1.timeToAppear, 20, 40);
+		screen.fillText("target2.currentTime: "+target2.currentTime, 400, 20);
+		screen.fillText("target2.timeToAppear: "+target2.timeToAppear, 400, 40);
+		//screen.fillText("target1.timeToDisappear: "+target1.timeToDisappear, 20, 120);
+		//screen.fillText("target1.timeToReappear: "+target1.timeToReappear, 20, 220);
+				
+		break;
+		
+	}//fechamento switch
+	
+	
+}
+
+function clear()
+{
+	screen.clearRect(0,0,800,600);
+}
+
+//nossas funï¿½ï¿½es de captura de teclado e mouse
+
+                        //padrao, nossa funï¿½ï¿½o, captura imediata
+window.addEventListener('keydown', key_down, true);
+window.addEventListener('keyup', key_up, true);
+window.addEventListener('mousemove', mouse_move, true);
+window.addEventListener('mouseup', mouse_up, true);
+window.addEventListener('mousedown', mouse_down, true);
+
+function key_down(key)
+{
+	console.log(key.keyCode);
+	
+	//TO DO enum com os cï¿½digos
+	if(key.keyCode == 39 )//direita
+	{
+		
+	}
+	
+	if(key.keyCode == 37 )//esquerda
+	{
+		
+	}
+}
+
+function key_up(key)
+{
+	console.log(key.keyCode);
+}
+
+function mouse_move(mouse)
+{
+	
+}
+
+function mouse_up(mouse)
+{
+	
+}
+
+function mouse_down(mouse)
+{
+	switch(currentScene)
+	{
+		case SCENE.INTRO:
+		
+			currentScene = SCENE.GAME; 
+		
+		break;
+		case SCENE.GAME:
+		
+			console.log("down X " + mouse.x + " down Y " + mouse.y );
+	
+			efeito_sonoro.play();
+	
+			paused = !paused;
+		
+		break;
+	}
+	
+}
+
+//retorna se um rect colidiu com outro
+function Collide(x1, y1, w1, h1, x2, y2, w2, h2)
+{	
+	if(
+	     (x1+w1<x2)//se rect1 esquerda rect2
+	   ||(x1>x2+w2)//se rect1 direita rect2
+	   ||(y1+h1<y2)//se rect1 acima rect2
+	   ||(y1>y2+h2)//se rect1 abaixo rect2
+	  )
+	{
+		return false;//nao colidiu
+	}
+	else
+	{
+		return true;//colidiu
+	}
+}
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

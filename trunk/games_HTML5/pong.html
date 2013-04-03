@@ -1,0 +1,337 @@
+<html>
+
+<head>
+
+<title>
+
+Javascript Arkanoid with "classes"
+
+</title>
+
+<!--Inclusão dos arquivos com a descrição dos objetos (classes)-->
+<!--notar a informação da subpasta-->
+<!--notar autocomplete... só que não... :´-(    )-->
+<script src="js/ball.js"></script>
+<script src="js/block.js"></script>
+<script src="js/pallete.js"></script>
+
+</head>
+
+<body>
+
+<!--canvas principal onde acontece o jogo-->
+<canvas width="800" height="600" id="main" style="border:1px solid #000000;"></canvas>
+
+<!--canvas secundário com informações extras (pontos, vida, etc...)-->
+<canvas width="80" height="600" id="main2" style="border:1px solid #FF0000;"/>
+
+<script>
+
+//referência dos DOIS canvas separadamente no script
+var canvas = document.getElementById("main");
+var screen = canvas.getContext("2d");
+var canvas2 = document.getElementById("main2");
+var screen2 = canvas2.getContext("2d");
+
+//a criação de um OBJETO do tipo BALL
+var ball = new Ball();
+
+//a criação de um OBJETO do tipo PALLETE
+var player1 = new Pallete();
+
+//a criação de uma VARIAVEL do tipo ARRAY (própria do javascript)
+//será a lista de blocos
+
+var blocks = new Array();
+
+//em cada posição desta lista vou então acrescentar BLOCOS
+blocks[0] = new Block(); 
+blocks[1] = new Block();
+blocks[2] = new Block();
+
+//mudando as posições iniciais destes blocos
+blocks[0].position_x = 0;
+blocks[1].position_x = 125;
+blocks[2].position_x = 250;
+
+//indica se o jogo está rodando ou pausado
+var paused = false;
+
+var efeito_sonoro = new Audio();
+efeito_sonoro.src = "sounds/powerup.mp3";
+efeito_sonoro.load();
+
+var pontos = 0;
+
+console.log("1");
+	
+load();
+
+console.log("2");
+
+function load()
+{	
+	console.log("load");
+	
+	if((true))//to do...
+	{	
+		console.log("carreguei");
+	
+		loop();
+	}
+	else
+	{
+		console.log("nao carreguei");
+	
+		setTimeout(load, 30 );
+	}
+}
+
+function loop()
+{
+	console.log("loop");
+	
+	//o loop do jogo faz chamadas para update e draw
+	
+	update();
+	
+	draw();
+	
+	//o loop do jogo se chama a cada 30 ms, +- 30 FPS (1/30) ~ 33 fps
+	setTimeout(loop, 30 );
+	
+}	
+	
+function update()
+{
+	console.log("update");
+	
+	if(paused)
+	{
+		return;
+	}
+	
+	ball.update();
+	
+	//atualiza a l�gica do jogo
+			
+	//mantendo a paleta verde na tela quando ela sai pela esquerda
+	/*if(paleta_verde_posicao_X < 0)
+	{
+		paleta_verde_posicao_X = 0;
+	}
+	
+	//mantendo a paleta verde na tela quando ela sai pela direita
+	if(paleta_verde_posicao_X > 800 - paleta_verde_tamanho_W)//como pegar o tamanho da tela? ou criar uma variavel global com este valor...
+	{
+		paleta_verde_posicao_X = 800 - paleta_verde_tamanho_W;
+	}
+		
+	
+	for(var i = 0; i < listadebolas.length; i++)
+	{
+		listadebolas[i].update();
+	
+	}
+		
+	if(Collide(
+				ball.position_x,
+				ball.position_y,
+				ball.size_x,
+				ball.size_y,
+				paleta_verde_posicao_X,
+				paleta_verde_posicao_Y,
+				paleta_verde_tamanho_W,
+				paleta_verde_tamanho_H))
+	{
+		ball.velocity_y *= -1;
+	}
+		
+	if(Collide(
+				ball.position_x,
+				ball.position_y,
+				ball.size_x,
+				ball.size_y,
+				paleta_vermelha_posicao_X,
+				paleta_vermelha_posicao_Y,
+				paleta_vermelha_tamanho_W,
+				paleta_vermelha_tamanho_H))
+	{
+		if(ball.velocity_y < ball.velocity_MAX)
+		{
+			ball.velocity_y += 1;
+		}
+		
+		
+		ball.velocity_y *= -1;
+	}
+	*/
+}
+
+function draw()
+{
+	console.log("draw");
+	//limpa a tela (refresh) e desenha tudo... e a tela 2???????????
+	clear();
+	
+	screen.drawImage(player1.img, player1.position_x, player1.position_y);
+	
+	screen.drawImage(ball.img, ball.position_x, ball.position_y);
+	
+	for(var i = 0; i < blocks.length; i++)
+	{
+		screen.drawImage(blocks[i].img, blocks[i].position_x, blocks[i].position_y);
+	
+	}
+		
+	//desenhar texto na tela 2	
+	screen2.font = "20px Comic Sans MS";
+	screen2.fillStyle="#FFFF00";
+	screen2.fillText(pontos, 20, 20);
+
+	
+}
+
+function clear()
+{
+	screen.clearRect(0,0,800,600);
+	//screen2.clearRect(0,0,800,600);//valores?
+}
+
+//nossas fun��es de captura de teclado e mouse
+
+                        //padrao, nossa fun��o, captura imediata
+window.addEventListener('keydown', key_down, true);
+window.addEventListener('keyup', key_up, true);
+window.addEventListener('mousemove', mouse_move, true);
+window.addEventListener('mouseup', mouse_up, true);
+window.addEventListener('mousedown', mouse_down, true);
+
+function key_down(key)
+{
+	console.log(key.keyCode);
+	
+	//TO DO enum com os c�digos
+	if(key.keyCode == 39 )//direita
+	{
+		paleta_verde_posicao_X += paleta_verde_velocidade_X;
+	}
+	
+	if(key.keyCode == 37 )//esquerda
+	{
+		paleta_verde_posicao_X -= paleta_verde_velocidade_X;
+	}
+}
+
+function key_up(key)
+{
+	console.log(key.keyCode);
+}
+
+function mouse_move(mouse)
+{
+	if(!paused)
+	{
+		console.log("mouse X " + mouse.x + " mouse Y " + mouse.y);
+		//console.log("paleta X " + mouse.x + " paleta Y " + mouse.y);
+	
+		paleta_verde_posicao_X = mouse.x;
+		//paleta_verde_posicao_Y = mouse.y;
+	}
+}
+
+function mouse_up(mouse)
+{
+	console.log("up X " + mouse.x + " up Y " + mouse.y);
+}
+
+function mouse_down(mouse)
+{
+	console.log("down X " + mouse.x + " down Y " + mouse.y );
+	
+	//efeito_sonoro.play();
+	
+	paused = !paused;
+}
+
+//retorna se um rect colidiu com outro
+function Collide(x1, y1, w1, h1, x2, y2, w2, h2)
+{	
+	if((x1+w1<x2)//se rect1 esquerda rect2
+		||(x1>x2+w2)//se rect1 direita rect2
+		||(y1+h1<y2)//se rect1 acima rect2
+		||(y1>y2+h2))//se rect1 abaixo rect2
+	{
+		return false;//nao colidiu
+	}
+	else
+	{
+		return true;//colidiu
+	}
+}
+
+//Math.floor((Math.random()*10)+1);
+//setInterval() - executes a function, over and over again, at specified time intervals
+//setTimeout() - executes a function, once, after waiting a specified number of milliseconds
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
