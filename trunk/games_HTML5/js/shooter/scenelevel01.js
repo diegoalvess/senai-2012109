@@ -69,7 +69,7 @@ function SceneLevel01()
     	
     	screen.font = "20px Comic Sans MS";
 		screen.fillStyle="#000000";
-		screen.fillText("LEVEL01", 20, 20);
+		screen.fillText("LEVEL01 Bruno é o cara õ/", 20, 20);
     };
         
     this.mouse_down=function(mouse)
